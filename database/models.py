@@ -13,8 +13,10 @@ class Event(Base):
     __tablename__ = "events"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    event_number: Mapped[int] = mapped_column()
     title: Mapped[str] = mapped_column(String(255))
     date_time: Mapped[datetime] = mapped_column(DateTime)
+    end_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     address: Mapped[str] = mapped_column(String(500))
     description: Mapped[str] = mapped_column(String(2000))
     message_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
@@ -59,8 +61,10 @@ class Database:
 
     async def create_event(
         self,
+        event_number: int,
         title: str,
         date_time: datetime,
+        end_time: Optional[datetime],
         address: str,
         description: str,
         message_id: Optional[int] = None,
@@ -68,8 +72,10 @@ class Database:
     ) -> Event:
         async with self.session_maker() as session:
             event = Event(
+                event_number=event_number,
                 title=title,
                 date_time=date_time,
+                end_time=end_time,
                 address=address,
                 description=description,
                 message_id=message_id,

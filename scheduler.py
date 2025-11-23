@@ -39,13 +39,13 @@ class ReminderScheduler:
 
             if reminder_type == "24h":
                 message_text = (
-                    f"Напоминание: завтра состоится мероприятие "
-                    f'"{event.title}" в {event.date_time.strftime("%H:%M")}. Ждём вас!'
+                    f"🔔 Напоминание: завтра состоится мероприятие в дискуссионном клубе АМД на тему:"
+                    f'<b>{event.title}</b> в <b>{event.date_time.strftime("%H:%M")}</b>. Ждём вас!'
                 )
             elif reminder_type == "3h":
                 message_text = (
-                    f'Напоминаем: через 3 часа начнётся встреча "{event.title}" '
-                    f"по адресу {event.address}. До встречи!"
+                    f'🔔 Напоминаем: через 3 часа начнётся встреча на тему:<b>{event.title}</b> '
+                    f"по адресу <b>{event.address}</b>. До встречи!"
                 )
             else:
                 logger.warning(f"Неизвестный тип напоминания: {reminder_type}")
@@ -58,7 +58,8 @@ class ReminderScheduler:
                 try:
                     await self.bot.send_message(
                         chat_id=participant.user_id,
-                        text=message_text
+                        text=message_text,
+                        parse_mode="HTML"
                     )
                     sent_count += 1
                 except Exception as e:

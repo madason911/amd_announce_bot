@@ -37,22 +37,22 @@ async def cmd_list(message: Message, db: Database):
             for p in maybe
         ]
 
-        response = f"📊 Мероприятие: {event.title}\n"
-        response += f"📅 {event.date_time.strftime('%d.%m.%Y %H:%M')}\n\n"
+        response = f"📊 <b>Мероприятие:</b> {event.title}\n"
+        response += f"📅 <b>{event.date_time.strftime('%d.%m.%Y %H:%M')}</b>\n\n"
 
-        response += f"👍 Я приду ({len(going)}):\n"
+        response += f"👍 <b>Я приду ({len(going)}):</b>\n"
         if going_list:
             response += ", ".join(going_list) + "\n\n"
         else:
             response += "Пока никто не записался\n\n"
 
-        response += f"🤔 Возможно ({len(maybe)}):\n"
+        response += f"🤔 <b>Возможно ({len(maybe)}):</b>\n"
         if maybe_list:
             response += ", ".join(maybe_list)
         else:
             response += "Пока никто не записался"
 
-        await message.answer(response)
+        await message.answer(response, parse_mode="HTML")
 
 
 @router.message(Command("clear_events"))
