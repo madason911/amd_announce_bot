@@ -25,32 +25,21 @@ async def cmd_list(message: Message, db: Database):
         return
 
     for event in events:
-        going = await db.get_participants_by_status(event.id, "going")
-        maybe = await db.get_participants_by_status(event.id, "maybe")
+        participants = await db.get_participants_by_event(event.id)
 
-        going_list = [
+        participant_list = [
             f"@{p.username}" if p.username else p.fullname
-            for p in going
-        ]
-        maybe_list = [
-            f"@{p.username}" if p.username else p.fullname
-            for p in maybe
+            for p in participants
         ]
 
         response = f"📊 <b>Мероприятие:</b> {event.title}\n"
         response += f"📅 <b>{event.date_time.strftime('%d.%m.%Y %H:%M')}</b>\n\n"
 
-        response += f"👍 <b>Я приду ({len(going)}):</b>\n"
-        if going_list:
-            response += ", ".join(going_list) + "\n\n"
+        response += f"🔔 <b>Включили напоминание ({len(participants)}):</b>\n"
+        if participant_list:
+            response += ", ".join(participant_list)
         else:
-            response += "Пока никто не записался\n\n"
-
-        response += f"🤔 <b>Возможно ({len(maybe)}):</b>\n"
-        if maybe_list:
-            response += ", ".join(maybe_list)
-        else:
-            response += "Пока никто не записался"
+            response += "Пока никто не активировал напоминания"
 
         await message.answer(response, parse_mode="HTML")
 

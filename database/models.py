@@ -36,7 +36,6 @@ class Participant(Base):
     user_id: Mapped[int] = mapped_column(BigInteger)
     username: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     fullname: Mapped[str] = mapped_column(String(200))
-    status: Mapped[str] = mapped_column(String(20))  # going, maybe, not_going
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     event: Mapped["Event"] = relationship(back_populates="participants")
@@ -117,8 +116,7 @@ class Database:
         event_id: int,
         user_id: int,
         username: Optional[str],
-        fullname: str,
-        status: str
+        fullname: str
     ) -> Participant:
         async with self.session_maker() as session:
             result = await session.execute(
@@ -130,15 +128,13 @@ class Database:
             participant = result.scalar_one_or_none()
 
             if participant:
-                participant.status = status
                 participant.timestamp = datetime.now()
             else:
                 participant = Participant(
                     event_id=event_id,
                     user_id=user_id,
                     username=username,
-                    fullname=fullname,
-                    status=status
+                    fullname=fullname
                 )
                 session.add(participant)
 
@@ -150,19 +146,5 @@ class Database:
         async with self.session_maker() as session:
             result = await session.execute(
                 select(Participant).where(Participant.event_id == event_id)
-            )
-            return list(result.scalars().all())
-
-    async def get_participants_by_status(
-        self,
-        event_id: int,
-        status: str
-    ) -> List[Participant]:
-        async with self.session_maker() as session:
-            result = await session.execute(
-                select(Participant).where(
-                    Participant.event_id == event_id,
-                    Participant.status == status
-                )
             )
             return list(result.scalars().all())

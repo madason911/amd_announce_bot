@@ -30,21 +30,16 @@ class ReminderScheduler:
                 logger.warning(f"Мероприятие {event_id} не найдено")
                 return
 
-            statuses = ["going", "maybe"]
-            participants = []
-
-            for status in statuses:
-                parts = await self.db.get_participants_by_status(event_id, status)
-                participants.extend(parts)
+            participants = await self.db.get_participants_by_event(event_id)
 
             if reminder_type == "24h":
                 message_text = (
-                    f"🔔 Напоминание: завтра состоится мероприятие в дискуссионном клубе АМД на тему:"
+                    f"🔔 Напоминание: завтра состоится встреча на тему: "
                     f'<b>{event.title}</b> в <b>{event.date_time.strftime("%H:%M")}</b>. Ждём вас!'
                 )
             elif reminder_type == "3h":
                 message_text = (
-                    f'🔔 Напоминаем: через 3 часа начнётся встреча на тему:<b>{event.title}</b> '
+                    f'🔔 Напоминаем: через 3 часа начнётся встреча на тему: <b>{event.title}</b> '
                     f"по адресу <b>{event.address}</b>. До встречи!"
                 )
             else:
