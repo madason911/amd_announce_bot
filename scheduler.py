@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 from aiogram import Bot
@@ -7,6 +8,9 @@ from aiogram import Bot
 from database import Database
 
 logger = logging.getLogger(__name__)
+
+# Московский часовой пояс
+MOSCOW_TZ = ZoneInfo("Europe/Moscow")
 
 
 class ReminderScheduler:
@@ -24,6 +28,7 @@ class ReminderScheduler:
         logger.info("Планировщик напоминаний остановлен")
 
     async def send_reminder(self, event_id: int, reminder_type: str):
+        logger.info(f"Запуск отправки напоминания типа {reminder_type} для мероприятия {event_id}")
         try:
             event = await self.db.get_event(event_id)
             if not event:
@@ -31,6 +36,11 @@ class ReminderScheduler:
                 return
 
             participants = await self.db.get_participants_by_event(event_id)
+            logger.info(f"Найдено {len(participants)} участников для мероприятия {event_id}")
+
+            if not participants:
+                logger.info(f"Нет участников для отправки напоминаний по мероприятию {event_id}")
+                return
 
             if reminder_type == "24h":
                 message_text = (
@@ -71,10 +81,15 @@ class ReminderScheduler:
             logger.error(f"Ошибка при отправке напоминаний: {e}")
 
     def schedule_reminders(self, event_id: int, event_datetime: datetime):
+        # Убеждаемся, что event_datetime имеет часовой пояс
+        if event_datetime.tzinfo is None:
+            event_datetime = event_datetime.replace(tzinfo=MOSCOW_TZ)
+
         reminder_24h = event_datetime - timedelta(hours=24)
         reminder_3h = event_datetime - timedelta(hours=3)
 
-        now = datetime.now()
+        # Получаем текущее московское время
+        now = datetime.now(MOSCOW_TZ)
 
         if reminder_24h > now:
             self.scheduler.add_job(

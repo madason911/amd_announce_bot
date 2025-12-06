@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -8,6 +9,9 @@ from bot.states import EventCreation
 from bot.keyboards import get_event_keyboard, get_chat_selection_keyboard
 from config import config
 from database import Database
+
+# Московский часовой пояс
+MOSCOW_TZ = ZoneInfo("Europe/Moscow")
 
 router = Router()
 
@@ -84,10 +88,18 @@ async def process_title(message: Message, state: FSMContext):
 @router.message(EventCreation.waiting_for_datetime)
 async def process_datetime(message: Message, state: FSMContext, db: Database, scheduler):
     try:
-        current_year = datetime.now().year
-        event_datetime = datetime.strptime(f"{message.text} {current_year}", "%d.%m %H:%M %Y")
+        # Получаем текущее московское время
+        moscow_now = datetime.now(MOSCOW_TZ)
+        current_year = moscow_now.year
 
-        if event_datetime < datetime.now():
+        # Парсим дату без часового пояса
+        event_datetime_naive = datetime.strptime(f"{message.text} {current_year}", "%d.%m %H:%M %Y")
+
+        # Добавляем московский часовой пояс
+        event_datetime = event_datetime_naive.replace(tzinfo=MOSCOW_TZ)
+
+        # Если дата в прошлом, берем следующий год
+        if event_datetime < moscow_now:
             event_datetime = event_datetime.replace(year=current_year + 1)
 
         data = await state.get_data()
